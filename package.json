@@ -1,6 +1,6 @@
 {
   "name": "worker-swarm",
-  "version": "1.0.1-0",
+  "version": "1.0.0-1",
   "description": "Distributes work to the most available workers",
   "main": "lib/public_api.js",
   "author": "deebloo",
