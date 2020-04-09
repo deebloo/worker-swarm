@@ -40,17 +40,15 @@ export class WorkerSwarm {
       return workerNode;
     });
 
-    return Promise.all(
-      workerNodes.map((workerNode) => {
-        workerNode.load++;
+    return workerNodes.map((workerNode) => {
+      workerNode.load++;
 
-        return this.run(workerNode.worker, data).then((res) => {
-          workerNode.load--; //decrease load
+      return this.run(workerNode.worker, data).then((res) => {
+        workerNode.load--; //decrease load
 
-          return res;
-        });
-      })
-    );
+        return res;
+      });
+    });
   }
 
   run<T>(worker: Worker, data: T) {

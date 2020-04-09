@@ -16,7 +16,7 @@ describe('swarm', () => {
       },
     ]);
 
-    swarm.post({ type: 'TEST' }).then((res) => {
+    Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data);
 
       expect(data).toEqual(['HELLO FROM FIRST']);
@@ -47,7 +47,7 @@ describe('swarm', () => {
       },
     ]);
 
-    swarm.post({ type: 'TEST' }).then((res) => {
+    Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data);
 
       expect(data).toEqual(['HELLO FROM FIRST', 'HELLO FROM SECOND']);
@@ -83,7 +83,7 @@ describe('swarm', () => {
       },
     ]);
 
-    swarm.post({ type: 'TEST' }).then((res) => {
+    Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data);
 
       expect(data).toEqual(['HELLO FROM FIRST']);

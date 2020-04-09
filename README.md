@@ -26,7 +26,7 @@ const swarm = new WorkerSwarm([
     },
 ]);
 
-swarm.post({ type: 'TEST' }).then((res) => {
+Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
     console.log(res)
 });
 ```
