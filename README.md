@@ -2,6 +2,23 @@
 
 A small library to help distribute work across a pool of workers
 
+```
+npm i worker-swarm
+```
+
+### first.worker.js
+
+```TS
+self.onmessage = (e) => {
+  self.postMessage({
+    jobId: e.data.jobId,
+    message: 'RESPONSE FROM ANOTHER THREAD'
+  })
+}
+```
+
+### UI Thread
+
 ```TS
 import { WorkerSwarm } from 'worker-swarm';
 

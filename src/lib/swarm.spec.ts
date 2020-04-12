@@ -1,11 +1,11 @@
 /// <reference lib="webworker" />
 
-import { WorkerSwarm } from './swarm';
+import { WorkerSwarm, WorkerNode } from './swarm';
 
 describe('swarm', () => {
   it('should respond with a message from a single worker', (done) => {
-    const workerUrl = createWorkerUrl(() => {
-      self.postMessage('HELLO FROM FIRST');
+    const workerUrl = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
     });
 
     const swarm = new WorkerSwarm([
@@ -17,7 +17,7 @@ describe('swarm', () => {
     ]);
 
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
-      const data = res.map((m) => m.data);
+      const data = res.map((m) => m.data.message);
 
       expect(data).toEqual(['HELLO FROM FIRST']);
 
@@ -26,12 +26,12 @@ describe('swarm', () => {
   });
 
   it('should respond with a message from a multiple workers', (done) => {
-    const workerUrl1 = createWorkerUrl(() => {
-      self.postMessage('HELLO FROM FIRST');
+    const workerUrl1 = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
     });
 
-    const workerUrl2 = createWorkerUrl(function () {
-      self.postMessage('HELLO FROM SECOND');
+    const workerUrl2 = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM SECOND' });
     });
 
     const swarm = new WorkerSwarm([
@@ -48,7 +48,7 @@ describe('swarm', () => {
     ]);
 
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
-      const data = res.map((m) => m.data);
+      const data = res.map((m) => m.data.message);
 
       expect(data).toEqual(['HELLO FROM FIRST', 'HELLO FROM SECOND']);
 
@@ -57,12 +57,12 @@ describe('swarm', () => {
   });
 
   it('should on run workers who are marked that they can handle a given message type', (done) => {
-    const workerUrl1 = createWorkerUrl(() => {
-      self.postMessage('HELLO FROM FIRST');
+    const workerUrl1 = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
     });
 
-    const workerUrl2 = createWorkerUrl(() => {
-      self.postMessage('HELLO FROM SECOND');
+    const workerUrl2 = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM SECOND' });
     });
 
     const swarm = new WorkerSwarm([
@@ -84,9 +84,80 @@ describe('swarm', () => {
     ]);
 
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
-      const data = res.map((m) => m.data);
+      const data = res.map((m) => m.data.message);
 
       expect(data).toEqual(['HELLO FROM FIRST']);
+
+      done();
+    });
+  });
+
+  it('should increase a worker nodes load when initialized', () => {
+    const workerUrl = createWorkerUrl(() => {});
+
+    const swarm = new WorkerSwarm([
+      {
+        name: 'first',
+        workers: [new Worker(workerUrl)],
+        handles: ['TEST'],
+      },
+    ]);
+
+    swarm.post({ type: 'TEST' });
+    swarm.post({ type: 'TEST' });
+    swarm.post({ type: 'TEST' });
+
+    const workers = swarm.workerPool.get('first') as WorkerNode[];
+
+    expect(workers[0].load).toBe(3);
+  });
+
+  it('should distribute work evenly and send new jobs to the node with the lowest load', () => {
+    const workerUrl = createWorkerUrl(() => {});
+
+    const swarm = new WorkerSwarm([
+      {
+        name: 'first',
+        workers: [new Worker(workerUrl), new Worker(workerUrl), new Worker(workerUrl)],
+        handles: ['TEST'],
+      },
+    ]);
+
+    swarm.post({ type: 'TEST' });
+    swarm.post({ type: 'TEST' });
+    swarm.post({ type: 'TEST' });
+
+    const workers = swarm.workerPool.get('first') as WorkerNode[];
+
+    expect(workers.map((node) => node.load)).toEqual([1, 1, 1]);
+
+    swarm.post({ type: 'TEST' });
+    swarm.post({ type: 'TEST' });
+
+    expect(workers.map((node) => node.load)).toEqual([2, 1, 2]);
+  });
+
+  it('should decrease a worker nodes load when it completes', (done) => {
+    const workerUrl = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId });
+    });
+
+    const swarm = new WorkerSwarm([
+      {
+        name: 'first',
+        workers: [new Worker(workerUrl)],
+        handles: ['TEST'],
+      },
+    ]);
+
+    Promise.all([
+      ...swarm.post({ type: 'TEST' }),
+      ...swarm.post({ type: 'TEST' }),
+      ...swarm.post({ type: 'TEST' }),
+    ]).then(() => {
+      const workers = swarm.workerPool.get('first') as WorkerNode[];
+
+      expect(workers[0].load).toBe(0);
 
       done();
     });

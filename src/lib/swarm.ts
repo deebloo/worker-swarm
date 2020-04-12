@@ -14,8 +14,10 @@ export interface WorkerMessage<T> {
   payload?: T;
 }
 
+let jobId = 0;
+
 export class WorkerSwarm {
-  private workerPool = new Map<string, WorkerNode[]>();
+  workerPool = new Map<string, WorkerNode[]>();
 
   constructor(private workerDefs: WorkerDef[]) {
     workerDefs.forEach((workerDef) => {
@@ -51,11 +53,24 @@ export class WorkerSwarm {
     });
   }
 
-  run<T>(worker: Worker, data: T) {
-    worker.postMessage(data);
+  run<T>(worker: Worker, message: T) {
+    jobId++;
 
-    return new Promise<MessageEvent>(function (resolve, reject) {
-      worker.onmessage = resolve;
+    worker.postMessage({ jobId, message });
+
+    const currentJobId = jobId;
+
+    return new Promise<MessageEvent>((resolve, reject) => {
+      const callback = (e: MessageEvent) => {
+        if (e.data.jobId === currentJobId) {
+          worker.removeEventListener('message', callback);
+
+          resolve(e);
+        }
+      };
+
+      worker.addEventListener('message', callback);
+
       worker.onerror = reject;
     });
   }
