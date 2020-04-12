@@ -12,6 +12,7 @@ export interface WorkerNode {
 export interface WorkerMessage<T> {
   type: string;
   payload?: T;
+  jobId?: number | string;
 }
 
 let jobId = 0;
@@ -53,16 +54,14 @@ export class WorkerSwarm {
     });
   }
 
-  run<T>(worker: Worker, message: T) {
-    jobId++;
+  run<T>(worker: Worker, message: WorkerMessage<T>) {
+    const jobMessage: WorkerMessage<T> = { ...message, jobId: message.jobId || jobId++ };
 
-    worker.postMessage({ jobId, message });
-
-    const currentJobId = jobId;
+    worker.postMessage(jobMessage);
 
     return new Promise<MessageEvent>((resolve, reject) => {
       const callback = (e: MessageEvent) => {
-        if (e.data.jobId === currentJobId) {
+        if (e.data.jobId === jobMessage.jobId) {
           worker.removeEventListener('message', callback);
 
           resolve(e);

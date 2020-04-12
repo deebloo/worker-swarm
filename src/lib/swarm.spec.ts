@@ -25,6 +25,28 @@ describe('swarm', () => {
     });
   });
 
+  it('should correctly respond with a manual jobId', (done) => {
+    const workerUrl = createWorkerUrl((e: MessageEvent) => {
+      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
+    });
+
+    const swarm = new WorkerSwarm([
+      {
+        name: 'first',
+        workers: [new Worker(workerUrl)],
+        handles: ['TEST'],
+      },
+    ]);
+
+    Promise.all(swarm.post({ type: 'TEST', jobId: 'TEST_JOB_ID' })).then((res) => {
+      const data = res.map((m) => m.data.message);
+
+      expect(data).toEqual(['HELLO FROM FIRST']);
+
+      done();
+    });
+  });
+
   it('should respond with a message from a multiple workers', (done) => {
     const workerUrl1 = createWorkerUrl((e: MessageEvent) => {
       self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
