@@ -27,12 +27,7 @@ const swarm = new WorkerSwarm([
     // Work will be distributed to the worker with the fewest active jobs
     {
         name: 'first',
-        workers: [
-          new Worker('./first.worker.js'),
-          new Worker('./first.worker.js'),
-          new Worker('./first.worker.js'),
-          new Worker('./first.worker.js'),
-        ],
+        workers: new Array(4).fill().map(() => new Worker('./first.worker.js'))
         handles: ['TEST'],
     },
     // Worker definitions state which post types a worker is able to handle
