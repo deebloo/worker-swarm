@@ -30,6 +30,6 @@
     "puppeteer": "9.1.1",
     "ts-loader": "9.1.2",
     "typescript": "4.0.2",
-    "webpack": "4.44.1"
+    "webpack": "5.38.1"
   }
 }
