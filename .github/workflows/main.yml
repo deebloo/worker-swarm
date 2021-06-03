@@ -23,11 +23,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2.1.5
       
       - name: Bootstrap
-        uses: actions/setup-node@v2.1.5
         run: npm ci
         
       - name: Bootstrap
-        uses: actions/setup-node@v2.1.5
         run: npm test
