@@ -3,26 +3,14 @@ export interface WorkerNode {
   load: number;
 }
 
-export interface WorkerSendMessage<T = any> {
-  type: string;
-  payload?: T;
-  jobId?: number | string;
-}
+export type JobId = string | number;
 
-export interface WorkerReceiveMessage<T = any> {
-  type: string;
-  payload?: T;
-  jobId: number | string;
-}
-
-export interface WorkerResponse<T = any> {
-  payload?: T;
-  jobId: number | string;
-}
+export type WorkerRequest<T = object> = { jobId: JobId } & T;
+export type WorkerResponse<T = object> = { jobId: JobId } & T;
 
 let jobId = 0;
 
-export class WorkerSwarm<T, R> {
+export class WorkerSwarm<T extends object = {}, R extends object = {}> {
   workerPool: WorkerNode[] = [];
 
   constructor(factory: () => Worker, count = 2) {
@@ -31,7 +19,7 @@ export class WorkerSwarm<T, R> {
     }
   }
 
-  post(data: WorkerSendMessage<T>) {
+  post(data: T) {
     const workerNode = this.workerPool.sort((a, b) => a.load - b.load)[0];
 
     workerNode.load++;
@@ -43,14 +31,14 @@ export class WorkerSwarm<T, R> {
     });
   }
 
-  run(worker: Worker, message: WorkerSendMessage<T>) {
-    const jobMessage: WorkerSendMessage<T> = { ...message, jobId: message.jobId || jobId++ };
+  run(worker: Worker, data: T) {
+    const currentJobId = jobId++;
 
-    worker.postMessage(jobMessage);
+    worker.postMessage({ ...data, jobId: currentJobId });
 
     return new Promise<MessageEvent<WorkerResponse<R>>>((resolve, reject) => {
       const callback = (e: MessageEvent<WorkerResponse<R>>) => {
-        if (e.data.jobId === jobMessage.jobId) {
+        if (e.data.jobId === currentJobId) {
           worker.removeEventListener('message', callback);
 
           resolve(e);

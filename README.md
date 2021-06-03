@@ -26,17 +26,17 @@ import { WorkerSwarm } from 'worker-swarm';
 const swarm = new WorkerSwarm(() => new Worker('./worker.js'), 3);
 
 // Will go to first worker
-swarm.post({ type: 'TEST' }).then((res) => {
+swarm.post({}).then((res) => {
     console.log(res)
 });
 
 // Will go to the second worker
-swarm.post({ type: 'TEST' }).then((res) => {
+swarm.post({}).then((res) => {
     console.log(res)
 });
 
 // Will go to the third worker
-swarm.post({ type: 'TEST' }).then((res) => {
+swarm.post({}).then((res) => {
     console.log(res)
 });
 ```
