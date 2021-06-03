@@ -11,7 +11,7 @@ npm i worker-swarm
 ```TS
 self.onmessage = (e) => {
   self.postMessage({
-    jobId: e.data.jobId,
+    jobId: e.data.jobId, // send the job id back to complete a task
     message: 'RESPONSE FROM ANOTHER THREAD'
   })
 }
