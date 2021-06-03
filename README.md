@@ -22,23 +22,15 @@ self.onmessage = (e) => {
 ```TS
 import { WorkerSwarm } from 'worker-swarm';
 
-const swarm = new WorkerSwarm([
-    // Multiple instances of the same worker.
-    // Work will be distributed to the worker with the fewest active jobs
-    {
-        name: 'first',
-        workers: new Array(4).fill().map(() => new Worker('./first.worker.js'))
-        handles: ['TEST'],
-    },
-    // Worker definitions state which post types a worker is able to handle
-    {
-        name: 'second',
-        workers: [new Worker('./second.worker.js')],
-        handles: ['FOO'],
-    },
-]);
+const swarm = new WorkerSwarm(() => new Worker('./first.worker.js'), 3);
 
-Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
+// Will go to first worker
+swarm.post({ type: 'TEST' }).then((res) => {
+    console.log(res)
+});
+
+// Will go to the second worker
+swarm.post({ type: 'TEST' }).then((res) => {
     console.log(res)
 });
 ```

@@ -1,9 +1,3 @@
-export interface WorkerDef {
-  name: string;
-  workers: Worker[];
-  handles: string[];
-}
-
 export interface WorkerNode {
   worker: Worker;
   load: number;
@@ -18,39 +12,23 @@ export interface WorkerMessage<T> {
 let jobId = 0;
 
 export class WorkerSwarm {
-  workerPool = new Map<string, WorkerNode[]>();
+  workerPool: WorkerNode[] = [];
 
-  constructor(private workerDefs: WorkerDef[]) {
-    workerDefs.forEach((workerDef) => {
-      this.workerPool.set(
-        workerDef.name,
-        workerDef.workers.map((worker) => ({ worker, load: 0 }))
-      );
-    });
+  constructor(factory: () => Worker, count = 2) {
+    for (let i = 0; i < count; i++) {
+      this.workerPool.push({ worker: factory(), load: 0 });
+    }
   }
 
   post<T>(data: WorkerMessage<T>) {
-    // Get workers that can handle the given message type
-    const workerDefs = this.workerDefs.filter((workerDef) => workerDef.handles.includes(data.type));
+    const workerNode = this.workerPool.sort((a, b) => a.load - b.load)[0];
 
-    // Get the Worker Nodes from the available worker defs
-    const workerNodes: WorkerNode[] = workerDefs.map((workerDef) => {
-      const workerNodes = this.workerPool.get(workerDef.name) as WorkerNode[];
+    workerNode.load++;
 
-      // select the node with the lowest node
-      const workerNode = workerNodes.sort((a, b) => a.load - b.load)[0];
+    return this.run(workerNode.worker, data).then((res) => {
+      workerNode.load--; //decrease load when work is done
 
-      return workerNode;
-    });
-
-    return workerNodes.map((workerNode) => {
-      workerNode.load++;
-
-      return this.run(workerNode.worker, data).then((res) => {
-        workerNode.load--; //decrease load
-
-        return res;
-      });
+      return res;
     });
   }
 
