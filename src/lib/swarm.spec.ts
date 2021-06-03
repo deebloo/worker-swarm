@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 
+import { expect } from '@esm-bundle/chai';
+
 import { WorkerSwarm, WorkerNode } from './swarm';
 
 describe('swarm', () => {
@@ -19,7 +21,7 @@ describe('swarm', () => {
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data.message);
 
-      expect(data).toEqual(['HELLO FROM FIRST']);
+      expect(data).to.deep.equal(['HELLO FROM FIRST']);
 
       done();
     });
@@ -41,7 +43,7 @@ describe('swarm', () => {
     Promise.all(swarm.post({ type: 'TEST', jobId: 'TEST_JOB_ID' })).then((res) => {
       const data = res.map((m) => m.data.message);
 
-      expect(data).toEqual(['HELLO FROM FIRST']);
+      expect(data).to.deep.equal(['HELLO FROM FIRST']);
 
       done();
     });
@@ -72,7 +74,7 @@ describe('swarm', () => {
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data.message);
 
-      expect(data).toEqual(['HELLO FROM FIRST', 'HELLO FROM SECOND']);
+      expect(data).to.deep.equal(['HELLO FROM FIRST', 'HELLO FROM SECOND']);
 
       done();
     });
@@ -108,7 +110,7 @@ describe('swarm', () => {
     Promise.all(swarm.post({ type: 'TEST' })).then((res) => {
       const data = res.map((m) => m.data.message);
 
-      expect(data).toEqual(['HELLO FROM FIRST']);
+      expect(data).to.deep.equal(['HELLO FROM FIRST']);
 
       done();
     });
@@ -131,7 +133,7 @@ describe('swarm', () => {
 
     const workers = swarm.workerPool.get('first') as WorkerNode[];
 
-    expect(workers[0].load).toBe(3);
+    expect(workers[0].load).to.equal(3);
   });
 
   it('should distribute work evenly and send new jobs to the node with the lowest load', () => {
@@ -151,12 +153,12 @@ describe('swarm', () => {
 
     const workers = swarm.workerPool.get('first') as WorkerNode[];
 
-    expect(workers.map((node) => node.load)).toEqual([1, 1, 1]);
+    expect(workers.map((node) => node.load)).to.deep.equal([1, 1, 1]);
 
     swarm.post({ type: 'TEST' });
     swarm.post({ type: 'TEST' });
 
-    expect(workers.map((node) => node.load)).toEqual([2, 1, 2]);
+    expect(workers.map((node) => node.load)).to.deep.equal([2, 1, 2]);
   });
 
   it('should decrease a worker nodes load when it completes', (done) => {
@@ -179,7 +181,7 @@ describe('swarm', () => {
     ]).then(() => {
       const workers = swarm.workerPool.get('first') as WorkerNode[];
 
-      expect(workers[0].load).toBe(0);
+      expect(workers[0].load).to.equal(0);
 
       done();
     });
