@@ -6,7 +6,7 @@ A small library to help distribute work across a pool of workers
 npm i worker-swarm
 ```
 
-### first.worker.js
+### worker.js
 
 ```TS
 self.onmessage = (e) => {
@@ -22,7 +22,8 @@ self.onmessage = (e) => {
 ```TS
 import { WorkerSwarm } from 'worker-swarm';
 
-const swarm = new WorkerSwarm(() => new Worker('./first.worker.js'), 3);
+// Create 3 instances of the worker
+const swarm = new WorkerSwarm(() => new Worker('./worker.js'), 3);
 
 // Will go to first worker
 swarm.post({ type: 'TEST' }).then((res) => {
