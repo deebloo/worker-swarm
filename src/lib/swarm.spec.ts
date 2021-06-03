@@ -2,12 +2,17 @@
 
 import { expect } from '@esm-bundle/chai';
 
-import { WorkerSwarm } from './swarm';
+import { WorkerReceiveMessage, WorkerResponse, WorkerSwarm } from './swarm';
 
 describe('swarm', () => {
   it('should create two workers by default', () => {
-    const workerUrl = createWorkerUrl((e: MessageEvent) => {
-      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
+    const workerUrl = createWorkerUrl((e: MessageEvent<WorkerReceiveMessage<string>>) => {
+      const message: WorkerResponse<string> = {
+        jobId: e.data.jobId,
+        payload: 'HELLO FROM FIRST',
+      };
+
+      self.postMessage(message);
     });
 
     const swarm = new WorkerSwarm(() => new Worker(workerUrl));
@@ -16,8 +21,13 @@ describe('swarm', () => {
   });
 
   it('should create the correct number of workers', () => {
-    const workerUrl = createWorkerUrl((e: MessageEvent) => {
-      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
+    const workerUrl = createWorkerUrl((e: MessageEvent<WorkerReceiveMessage<string>>) => {
+      const message: WorkerResponse = {
+        jobId: e.data.jobId,
+        payload: 'HELLO FROM FIRST',
+      };
+
+      self.postMessage(message);
     });
 
     const swarm = new WorkerSwarm(() => new Worker(workerUrl), 5);
@@ -26,28 +36,38 @@ describe('swarm', () => {
   });
 
   it('should respond with a message from a single worker', (done) => {
-    const workerUrl = createWorkerUrl((e: MessageEvent) => {
-      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
+    const workerUrl = createWorkerUrl((e: MessageEvent<WorkerReceiveMessage<string>>) => {
+      const message: WorkerResponse = {
+        jobId: e.data.jobId,
+        payload: 'HELLO FROM FIRST',
+      };
+
+      self.postMessage(message);
     });
 
-    const swarm = new WorkerSwarm(() => new Worker(workerUrl), 1);
+    const swarm = new WorkerSwarm<void, string>(() => new Worker(workerUrl), 1);
 
     swarm.post({ type: 'TEST' }).then((res) => {
-      expect(res.data.message).to.equal('HELLO FROM FIRST');
+      expect(res.data.payload).to.equal('HELLO FROM FIRST');
 
       done();
     });
   });
 
   it('should correctly respond with a manual jobId', (done) => {
-    const workerUrl = createWorkerUrl((e: MessageEvent) => {
-      self.postMessage({ jobId: e.data.jobId, message: 'HELLO FROM FIRST' });
+    const workerUrl = createWorkerUrl((e: MessageEvent<WorkerReceiveMessage<string>>) => {
+      const message: WorkerResponse = {
+        jobId: e.data.jobId,
+        payload: 'HELLO FROM FIRST',
+      };
+
+      self.postMessage(message);
     });
 
-    const swarm = new WorkerSwarm(() => new Worker(workerUrl), 1);
+    const swarm = new WorkerSwarm<void, string>(() => new Worker(workerUrl), 1);
 
     swarm.post({ type: 'TEST', jobId: 'TEST_JOB_ID' }).then((res) => {
-      expect(res.data.message).to.equal('HELLO FROM FIRST');
+      expect(res.data.payload).to.equal('HELLO FROM FIRST');
 
       done();
     });
@@ -56,7 +76,7 @@ describe('swarm', () => {
   it('should increase a worker nodes load when initialized', () => {
     const workerUrl = createWorkerUrl(() => {});
 
-    const swarm = new WorkerSwarm(() => new Worker(workerUrl), 1);
+    const swarm = new WorkerSwarm<null, string>(() => new Worker(workerUrl), 1);
 
     swarm.post({ type: 'TEST' });
     swarm.post({ type: 'TEST' });
