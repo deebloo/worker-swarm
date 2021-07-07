@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "4.3.4",
-    "@types/mocha": "8.2.2",
+    "@types/mocha": "8.2.3",
     "@types/node": "14.17.4",
     "@web/test-runner": "0.13.12",
     "@web/test-runner-puppeteer": "0.10.0",
