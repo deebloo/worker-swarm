@@ -24,7 +24,7 @@
     "@web/test-runner": "0.13.15",
     "@web/test-runner-puppeteer": "0.10.0",
     "prettier": "2.3.2",
-    "puppeteer": "10.1.0",
+    "puppeteer": "10.2.0",
     "typescript": "4.3.5"
   }
 }
