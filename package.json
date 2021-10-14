@@ -23,7 +23,7 @@
     "@types/node": "14.17.16",
     "@web/test-runner": "0.13.19",
     "@web/test-runner-puppeteer": "0.10.2",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "puppeteer": "10.4.0",
     "typescript": "4.4.4"
   }
